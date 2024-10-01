@@ -9,11 +9,13 @@ use Illuminate\Support\Facades\DB;
 class ProductModel extends Model
 {
     use HasFactory;
-    protected $table='product';
-    protected $fillable=[
+
+    protected $table = 'product';
+    protected $primaryKey = 'id_product';
+
+    protected $fillable = [
         'name',
-        'price',
-        'sale_price',
+
         'describe',
         'image',
         'view',
@@ -21,10 +23,46 @@ class ProductModel extends Model
         'updated_at',
         'id_category',
     ];
+
     public function getProductAll() {
         $result = DB::table('product as p')
-            ->join('product_attr as pa', 'pa.id_product', '=', 'p.id_product')
-            ->join('attribute as a', 'pa.id_attribute', '=', 'a.id_attribute')
+            ->join('product_variants as pv', 'pv.id_product', '=', 'p.id_product')
+            ->join('colors as c', 'pv.id_color', '=', 'c.id_color')
+            ->join('sizes as s', 'pv.id_size', '=', 's.id_size')
+            ->select(
+                'p.id_product',
+                'p.name as product_name',
+                'p.image',
+                'p.describe',
+                'p.status',
+                'p.view',
+                'p.updated_at',
+                DB::raw('GROUP_CONCAT(DISTINCT c.id_color ORDER BY c.id_color) as color_ids'),
+                DB::raw('GROUP_CONCAT(DISTINCT c.name ORDER BY c.id_color) as color_names'),
+                DB::raw('GROUP_CONCAT(DISTINCT s.id_size ORDER BY s.id_size) as size_ids'),
+                DB::raw('GROUP_CONCAT(DISTINCT s.size_value ORDER BY s.id_size) as size_values'),
+                DB::raw('SUM(pv.quantity) as total_quantity')
+            )
+            ->groupBy(
+                'p.id_product',
+                'p.name',
+                'p.image',
+                'p.describe',
+                'p.status',
+                'p.view',
+                'p.updated_at'
+            )
+            ->get();
+
+       return $result;
+    }
+
+    public function findProduct($idproduct) {
+        $result = DB::table('product as p')
+            ->join('product_variants as pv', 'pv.id_product', '=', 'p.id_product')
+            ->join('colors as c', 'pv.id_color', '=', 'c.id_color')
+            ->join('sizes as s', 'pv.id_size', '=', 's.id_size')
+            ->join('category as cat', 'cat.id_category', '=', 'p.id_category')
             ->select(
                 'p.id_product',
                 'p.name as product_name',
@@ -35,10 +73,13 @@ class ProductModel extends Model
                 'p.status',
                 'p.view',
                 'p.updated_at',
-                DB::raw('GROUP_CONCAT(DISTINCT a.id_attribute ORDER BY a.id_attribute) as attribute_ids'),
-                DB::raw('GROUP_CONCAT(DISTINCT a.name ORDER BY a.id_attribute) as attribute_names'),
-                DB::raw('GROUP_CONCAT(DISTINCT a.value ORDER BY a.id_attribute) as attribute_values'),
-                DB::raw('GROUP_CONCAT(pa.quantity ORDER BY a.id_attribute) as attribute_quantities')
+                'cat.id_category',
+                'cat.name as category_name',
+                DB::raw('GROUP_CONCAT(DISTINCT c.id_color ORDER BY c.id_color) as color_ids'),
+                DB::raw('GROUP_CONCAT(DISTINCT c.name ORDER BY c.id_color) as color_names'),
+                DB::raw('GROUP_CONCAT(DISTINCT s.id_size ORDER BY s.id_size) as size_ids'),
+                DB::raw('GROUP_CONCAT(DISTINCT s.size_value ORDER BY s.id_size) as size_values'),
+                DB::raw('GROUP_CONCAT(pv.quantity ORDER BY pv.id_variant) as quantities')
             )
             ->groupBy(
                 'p.id_product',
@@ -49,13 +90,13 @@ class ProductModel extends Model
                 'p.describe',
                 'p.status',
                 'p.view',
-                'p.updated_at'
+                'p.updated_at',
+                'cat.id_category',
+                'cat.name'
             )
-            ->get();
+            ->where('p.id_product', '=', $idproduct)
+            ->first();
 
         return $result;
     }
-
-
-
 }
