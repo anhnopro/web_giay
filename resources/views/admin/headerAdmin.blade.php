@@ -25,6 +25,13 @@
     <title>Document</title>
 </head>
 <body>
+<script>
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    });
+</script>
 
 <div style="background-color: rgb(249, 247, 247);">
     <nav class="navbar navbar-expand-sm bg-light border shadow rounded-1" style="height: 60px;">
@@ -119,4 +126,4 @@
         </div>
         <div style="width: calc(100% - 220px);">
 
-       
+

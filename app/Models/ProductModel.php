@@ -15,7 +15,6 @@ class ProductModel extends Model
 
     protected $fillable = [
         'name',
-
         'describe',
         'image',
         'view',
@@ -67,8 +66,8 @@ class ProductModel extends Model
                 'p.id_product',
                 'p.name as product_name',
                 'p.image',
-                'p.price',
-                'p.sale_price',
+                'pv.price', // Make sure to include price from variants if needed
+                'pv.sale_price',
                 'p.describe',
                 'p.status',
                 'p.view',
@@ -85,8 +84,8 @@ class ProductModel extends Model
                 'p.id_product',
                 'p.name',
                 'p.image',
-                'p.price',
-                'p.sale_price',
+                'pv.price', // Ensure this is referencing the correct price
+                'pv.sale_price',
                 'p.describe',
                 'p.status',
                 'p.view',
@@ -99,4 +98,16 @@ class ProductModel extends Model
 
         return $result;
     }
+
+    // ProductModel.php
+    public function variants()
+    {
+        return $this->hasMany(ProductVariantModel::class, 'id_product'); // This should reference 'id_product'
+    }
+    public function category()
+    {
+        return $this->belongsTo(CategoryModel::class, 'id_category'); // Use the correct foreign key
+    }
+
+
 }

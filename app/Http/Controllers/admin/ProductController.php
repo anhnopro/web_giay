@@ -73,7 +73,7 @@ class ProductController extends Controller
                 $imagePaths = $file->store('images', 'public');
             }
         }
-        $data['image'] = json_encode($imagePaths);
+        $data['image'] = $imagePaths;
         $product = ProductModel::create($data);
 
         if ($product) {
@@ -100,7 +100,7 @@ class ProductController extends Controller
                         'id_color' => $color,
                         'quantity' => $quantity,
                         'price' => $price,
-                        'image' => json_encode($variantImagePaths),
+                        'image' => $variantImagePaths,
                     ]);
                 }
             }
@@ -111,15 +111,98 @@ class ProductController extends Controller
     }
 
 
-    public function editProduct($prd)
-    {
-        $categories = CategoryModel::all();
-        $product = ProductModel::find($prd);
+    public function editProduct($id_product)
+{
+    $product = ProductModel::with(['variants.color', 'variants.size', 'category'])->findOrFail($id_product);
+    $categories = CategoryModel::all();
+    $colors = ColorModel::all();
+    $sizes = SizeModel::all();
 
-        if (!$product) {
-            return redirect()->route('list.product')->with('error', 'Product not found.');
+    return view('admin.product.detailPrd', [
+        'categories' => $categories,
+        'product' => $product,
+        'colors' => $colors,
+        'sizes' => $sizes,
+    ]);
+
+}
+public function updateProduct(Request $request, $prd)
+    {
+        $product = ProductModel::with('variants')->findOrFail($prd);
+
+        $validator = Validator::make($request->all(), [
+            'id_category' => 'required|exists:categories,id_category',
+            'name' => 'required|string|max:255',
+            'describe' => 'nullable|string',
+            'image' => 'nullable|array',
+            'image.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'variants' => 'required|array',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        return view('admin.product.detailPrd', compact('product', 'categories'));
+        $product->id_category = $request->input('id_category');
+        $product->name = $request->input('name');
+        $product->describe = $request->input('describe');
+
+        if ($request->hasFile('image')) {
+            if ($product->image && \Storage::disk('public')->exists($product->image)) {
+                \Storage::disk('public')->delete($product->image);
+            }
+
+            $product->image = $request->file('image')->store('images', 'public');
+        }
+
+        $product->save();
+
+        $this->updateVariants($request, $product);
+        return redirect()->route('admin.products.edit', $prd)->with('success', 'Product updated successfully.');
+    }
+
+    // Update specific variant
+    public function updateVariant(Request $request, $prd)
+    {
+        $variant = ProductVariantModel::findOrFail($prd);
+
+        $validator = Validator::make($request->all(), [
+            'id_category' => 'required|exists:categories,id_category',
+            'quantity' => 'required|integer|min:0',
+            'price' => 'required|numeric|min:0',
+            'sale_price' => 'nullable|numeric|min:0',
+            'id_color' => 'required|exists:colors,id_color',
+            'id_size' => 'required|exists:sizes,id_size',
+            'status' => 'required|in:1,0',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $variant->update($request->only(['quantity', 'price', 'sale_price', 'id_color', 'id_size', 'status']));
+
+        if ($request->hasFile('image')) {
+            if ($variant->image && \Storage::disk('public')->exists($variant->image)) {
+                \Storage::disk('public')->delete($variant->image);
+            }
+
+            $variant->image = $request->file('image')->store('images', 'public');
+        }
+
+        return redirect()->route('admin.products.edit', $variant->id_product)->with('success', 'Variant updated successfully.');
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
