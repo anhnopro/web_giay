@@ -59,12 +59,11 @@
                     <a class="nav-link" href="#">
                         <div class="dropdown">
                             <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton">
-                                Danh sách sản phẩm
+                               Quản lí sản phẩm
                             </button>
                             <div class="dropdown-menu">
-                                <a class="dropdown-item" href="#">Danh sách</a>
-                                <a class="dropdown-item" href="#">Thêm</a>
-                                <a class="dropdown-item" href="#">Thùng giác</a>
+                                <a class="dropdown-item" href="{{route('list.product')}}">Sản phẩm</a>
+                                <a class="dropdown-item" href="{{route('list.category')}}">Thương hiệu</a>
                             </div>
                         </div>
                     </a>

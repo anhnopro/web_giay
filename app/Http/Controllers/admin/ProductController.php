@@ -9,6 +9,7 @@ use App\Models\ProductModel;
 use App\Models\ProductVariantModel; // Assuming you have a model for product variants
 use App\Models\SizeModel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
@@ -126,73 +127,126 @@ class ProductController extends Controller
     ]);
 
 }
-public function updateProduct(Request $request, $prd)
-    {
-        $product = ProductModel::with('variants')->findOrFail($prd);
 
-        $validator = Validator::make($request->all(), [
-            'id_category' => 'required|exists:categories,id_category',
-            'name' => 'required|string|max:255',
-            'describe' => 'nullable|string',
-            'image' => 'nullable|array',
-            'image.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
-            'variants' => 'required|array',
-        ]);
+public function updateProduct(Request $request, $id)
+{
+    // Find the product to update
+    $product = ProductModel::findOrFail($id);
 
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+    // Validate the main product data
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'id_category' => 'required|exists:categories,id_category',
+        'describe' => 'required|string',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'status' => 'required|boolean',
+        // Variant fields will be handled separately
+    ]);
+
+    // Update product attributes
+    $product->name = $request->input('name');
+    $product->id_category = $request->input('id_category');
+    $product->describe = $request->input('describe');
+    $product->status = $request->input('status');
+
+    // Handle product image upload
+    if ($request->hasFile('image')) {
+        // Delete old image if exists
+        if ($product->image) {
+            Storage::disk('public')->delete($product->image);
         }
-
-        $product->id_category = $request->input('id_category');
-        $product->name = $request->input('name');
-        $product->describe = $request->input('describe');
-
-        if ($request->hasFile('image')) {
-            if ($product->image && \Storage::disk('public')->exists($product->image)) {
-                \Storage::disk('public')->delete($product->image);
-            }
-
-            $product->image = $request->file('image')->store('images', 'public');
-        }
-
-        $product->save();
-
-        $this->updateVariants($request, $product);
-        return redirect()->route('admin.products.edit', $prd)->with('success', 'Product updated successfully.');
+        // Store new image
+        $path = $request->file('image')->store('products', 'public');
+        $product->image = $path;
     }
 
-    // Update specific variant
-    public function updateVariant(Request $request, $prd)
-    {
-        $variant = ProductVariantModel::findOrFail($prd);
+    $product->save();
 
-        $validator = Validator::make($request->all(), [
-            'id_category' => 'required|exists:categories,id_category',
-            'quantity' => 'required|integer|min:0',
-            'price' => 'required|numeric|min:0',
-            'sale_price' => 'nullable|numeric|min:0',
-            'id_color' => 'required|exists:colors,id_color',
-            'id_size' => 'required|exists:sizes,id_size',
-            'status' => 'required|in:1,0',
-        ]);
+    // Handle variant updates
+    if ($request->has('variants')) {
+        foreach ($request->variants as $variantData) {
+            // Find the variant
+            $variant = ProductVariantModel::findOrFail($variantData['id_variant']);
 
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+            // Update variant attributes
+            $variant->quantity = $variantData['quantity'];
+            $variant->price = $variantData['price'];
+            $variant->sale_price = $variantData['sale_price'] ?? null;
+            $variant->id_color = $variantData['id_color'];
+            $variant->id_size = $variantData['id_size'];
+
+            // Note: Variant images are handled via the modal, not here
+
+            $variant->save();
         }
+    }
 
-        $variant->update($request->only(['quantity', 'price', 'sale_price', 'id_color', 'id_size', 'status']));
+    // Handle variant deletions
+    if ($request->has('selected_variants')) {
+        foreach ($request->selected_variants as $variantId) {
+            $variant = ProductVariantModel::findOrFail($variantId);
 
-        if ($request->hasFile('image')) {
-            if ($variant->image && \Storage::disk('public')->exists($variant->image)) {
-                \Storage::disk('public')->delete($variant->image);
+            // Delete variant image if exists
+            if ($variant->image) {
+                Storage::disk('public')->delete($variant->image);
             }
 
-            $variant->image = $request->file('image')->store('images', 'public');
+            // Delete the variant
+            $variant->delete();
         }
-
-        return redirect()->route('admin.products.edit', $variant->id_product)->with('success', 'Variant updated successfully.');
     }
+
+    return redirect()->route('admin.product.edit', $product->id_product)
+                     ->with('success', 'Cập nhật sản phẩm thành công!');
 }
+
+/**
+ * Update the specified product variant in storage.
+ */
+public function updateVariant(Request $request, $id)
+{
+    // Find the variant to update
+    $variant = ProductVariantModel::findOrFail($id);
+
+    // Validate variant data
+    $request->validate([
+        'quantity' => 'required|integer|min:0',
+        'price' => 'required|integer|min:0',
+        'sale_price' => 'nullable|integer|min:0',
+        'id_color' => 'required|exists:colors,id_color',
+        'id_size' => 'required|exists:sizes,id_size',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+    ]);
+
+    // Update variant attributes
+    $variant->quantity = $request->input('quantity');
+    $variant->price = $request->input('price');
+    $variant->sale_price = $request->input('sale_price') ?? null;
+    $variant->id_color = $request->input('id_color');
+    $variant->id_size = $request->input('id_size');
+
+    // Handle variant image upload
+    if ($request->hasFile('image')) {
+        // Delete old image if exists
+        if ($variant->image) {
+            Storage::disk('public')->delete($variant->image);
+        }
+        // Store new image
+        $path = $request->file('image')->store('variants', 'public');
+        $variant->image = $path;
+    }
+
+    $variant->save();
+
+    return redirect()->route('update.product', $variant->id_product)
+                     ->with('success', 'Cập nhật biến thể sản phẩm thành công!');
+}
+
+
+}
+
+
+
 
 
 

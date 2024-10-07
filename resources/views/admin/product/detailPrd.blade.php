@@ -3,7 +3,7 @@
 <div class="container mt-4">
     <h2>Cập Nhật Sản Phẩm</h2>
 
-    <!-- Hiển thị thông báo thành công và lỗi -->
+    <!-- Display Success and Error Messages -->
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
@@ -12,22 +12,22 @@
         <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
 
-    <form action="{{ route('admin.products.update', $product->id_product) }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('update.product', $product->id_product) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
-        <!-- Phần chỉnh sửa thông tin chính của sản phẩm -->
+        <!-- Main Product Information -->
         <div class="mb-4">
             <h4>Thông Tin Sản Phẩm</h4>
             <div class="row">
-                <!-- Tên sản phẩm -->
+                <!-- Product Name -->
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="productName" class="form-label">Tên Sản Phẩm</label>
                         <input type="text" class="form-control" id="productName" name="name" value="{{ old('name', $product->name) }}" required>
                     </div>
                 </div>
-                <!-- Danh mục sản phẩm -->
+                <!-- Product Category -->
                 <div class="col-md-6">
                     <div class="mb-3">
                         <label for="productCategory" class="form-label">Danh Mục</label>
@@ -42,12 +42,12 @@
                     </div>
                 </div>
             </div>
-            <!-- Mô tả sản phẩm -->
+            <!-- Product Description -->
             <div class="mb-3">
                 <label for="productDescription" class="form-label">Mô Tả</label>
                 <textarea class="form-control" id="productDescription" name="describe" rows="3" required>{{ old('describe', $product->describe) }}</textarea>
             </div>
-            <!-- Ảnh sản phẩm -->
+            <!-- Product Image -->
             <div class="mb-3">
                 <label for="productImage" class="form-label">Ảnh Sản Phẩm</label>
                 <input type="file" class="form-control" id="productImage" name="image">
@@ -55,7 +55,7 @@
                     <img src="{{ asset('/storage/'.$product->image) }}" alt="Ảnh sản phẩm" style="width: 100px; height: auto; margin-top: 10px;">
                 @endif
             </div>
-            <!-- Trạng thái sản phẩm -->
+            <!-- Product Status -->
             <div class="mb-3">
                 <label for="productStatus" class="form-label">Trạng Thái</label>
                 <select name="status" id="productStatus" class="form-control" required>
@@ -65,13 +65,10 @@
             </div>
         </div>
 
-        <!-- Bảng chứa thông tin sản phẩm và biến thể -->
+        <!-- Product Variants Management -->
         <div class="mb-4">
             <h4>Quản Lý Biến Thể Sản Phẩm</h4>
-            <div class="text-end mb-2">
-                <!-- Nút mở Modal để thêm hoặc cập nhật biến thể -->
-                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#detailModal">Cập nhật biến thể</button>
-            </div>
+           
             <table class="table table-bordered mt-2" id="product-variants-table">
                 <thead>
                     <tr>
@@ -125,21 +122,17 @@
                                 </select>
                             </td>
                             <td>
-                                <button type="button" class="btn btn-info btn-sm view-detail"
+                                <!-- Button to Open Modal for Editing Variant -->
+                                <button type="button" class="btn btn-info btn-sm edit-variant-btn"
                                         data-bs-toggle="modal"
-                                        data-bs-target="#detailModal"
+                                        data-bs-target="#variantModal"
                                         data-variant-id="{{ $variant->id_variant }}"
-                                        data-variant-name="{{ $product->name }}"
-                                        data-variant-image="{{ asset('/storage/'.$variant->image) }}"
-                                        data-variant-description="{{ $product->describe }}"
-                                        data-variant-category="{{ $variant->id_category }}"
-                                        data-variant-status="{{ $variant->status }}"
-                                        data-variant-view="{{ $product->view }}"
+                                        data-variant-quantity="{{ $variant->quantity }}"
                                         data-variant-price="{{ $variant->price }}"
                                         data-variant-sale-price="{{ $variant->sale_price }}"
-                                        data-variant-quantity="{{ $variant->quantity }}"
                                         data-variant-color="{{ $variant->id_color }}"
-                                        data-variant-size="{{ $variant->id_size }}">
+                                        data-variant-size="{{ $variant->id_size }}"
+                                        data-variant-image="{{ asset('/storage/'.$variant->image) }}">
                                     Xem chi tiết
                                 </button>
                             </td>
@@ -149,7 +142,7 @@
             </table>
         </div>
 
-        <!-- Nút Submit chính -->
+        <!-- Main Submit Button -->
         <div class="text-center">
             <button type="submit" class="btn btn-primary">Cập nhật tất cả</button>
         </div>
@@ -158,10 +151,10 @@
 
 @include('admin.footerAdmin')
 
-<!-- Modal để xem và chỉnh sửa chi tiết biến thể sản phẩm -->
-<div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg"> <!-- Sử dụng modal-lg để làm rộng modal -->
-        <form id="variantDetailForm" action="" method="POST" enctype="multipart/form-data">
+<!-- Modal for Adding/Editing Variant -->
+<div class="modal fade" id="variantModal" tabindex="-1" aria-labelledby="variantModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg"> <!-- Use modal-lg for larger modal -->
+        <form id="variantForm" action="" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
             <div class="modal-content">
@@ -172,66 +165,38 @@
                 <div class="modal-body">
                     <div class="container-fluid">
                         <div class="row">
-                            <!-- Cột bên trái -->
+                            <!-- Left Column -->
                             <div class="col-md-6">
-                                <!-- Tên sản phẩm -->
-                                <div class="mb-3">
-                                    <label for="modalVariantName" class="form-label">Tên sản phẩm</label>
-                                    <input type="text" class="form-control" id="modalVariantName" name="name" required>
-                                </div>
-                                <!-- Mô tả sản phẩm -->
-                                <div class="mb-3">
-                                    <label for="modalVariantDescription" class="form-label">Mô tả</label>
-                                    <textarea class="form-control" id="modalVariantDescription" name="describe" rows="3"></textarea>
-                                </div>
-                                <!-- Danh mục sản phẩm -->
-                                <div class="mb-3">
-                                    <label for="modalVariantCategory" class="form-label">Danh mục</label>
-                                    <select name="id_category" id="modalVariantCategory" class="form-control" required>
-                                        <option value="">-Chọn danh mục-</option>
-                                        @foreach ($categories as $cate)
-                                            <option value="{{ $cate->id_category }}">{{ $cate->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <!-- Trạng thái sản phẩm -->
-                                <div class="mb-3">
-                                    <label for="modalVariantStatus" class="form-label">Trạng thái</label>
-                                    <select name="status" id="modalVariantStatus" class="form-control" required>
-                                        <option value="1">Hoạt động</option>
-                                        <option value="0">Không hoạt động</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <!-- Cột bên phải -->
-                            <div class="col-md-6">
-                                <!-- Ảnh biến thể -->
+                                <!-- Variant Image -->
                                 <div class="mb-3">
                                     <label for="modalVariantImage" class="form-label">Ảnh biến thể</label>
                                     <input type="file" class="form-control" id="modalVariantImage" name="image">
-                                    <img id="currentVariantImage" src="" alt="Ảnh biến thể" style="width: 100px; height: auto; margin-top: 10px;">
+                                    <img id="currentVariantImage" src="" alt="Ảnh biến thể" style="width: 100px; height: auto; margin-top: 10px; display: none;">
                                 </div>
-                                <!-- Số lượt xem -->
+                                <!-- Number of Views (Read-Only) -->
                                 <div class="mb-3">
                                     <label for="modalVariantView" class="form-label">Số lượt xem</label>
                                     <input type="number" class="form-control" id="modalVariantView" name="view" readonly>
                                 </div>
-                                <!-- Số lượng -->
+                                <!-- Quantity -->
                                 <div class="mb-3">
                                     <label for="modalVariantQuantity" class="form-label">Số lượng</label>
                                     <input type="number" class="form-control" id="modalVariantQuantity" name="quantity" required>
                                 </div>
-                                <!-- Giá -->
+                            </div>
+                            <!-- Right Column -->
+                            <div class="col-md-6">
+                                <!-- Price -->
                                 <div class="mb-3">
                                     <label for="modalVariantPrice" class="form-label">Giá</label>
                                     <input type="number" class="form-control" id="modalVariantPrice" name="price" required>
                                 </div>
-                                <!-- Giá giảm -->
+                                <!-- Sale Price -->
                                 <div class="mb-3">
                                     <label for="modalVariantSalePrice" class="form-label">Giá giảm</label>
                                     <input type="number" class="form-control" id="modalVariantSalePrice" name="sale_price" placeholder="Giá giảm">
                                 </div>
-                                <!-- Màu sắc -->
+                                <!-- Color -->
                                 <div class="mb-3">
                                     <label for="modalVariantColor" class="form-label">Màu sắc</label>
                                     <select name="id_color" id="modalVariantColor" class="form-control" required>
@@ -241,7 +206,7 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <!-- Kích cỡ -->
+                                <!-- Size -->
                                 <div class="mb-3">
                                     <label for="modalVariantSize" class="form-label">Kích cỡ</label>
                                     <select name="id_size" id="modalVariantSize" class="form-control" required>
@@ -264,48 +229,43 @@
     </div>
 </div>
 
-<!-- Định Nghĩa Biến JavaScript Cho URL Cập Nhật Biến Thể -->
+<!-- Define JavaScript Variable for Variant Update URL -->
 <script>
-    var updateVariantUrl = "{{ route('admin.products.variants.update', '') }}/";
+    var updateVariantUrl = "{{ route('update.product.variant', '') }}/";
 </script>
 
-<!-- JavaScript để điền dữ liệu vào modal -->
+<!-- JavaScript for Handling Modal Data Population -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    var detailModal = document.getElementById('detailModal');
-    detailModal.addEventListener('show.bs.modal', function (event) {
-        // Lấy nút mà đã được nhấn
+    var variantModal = document.getElementById('variantModal');
+    var variantForm = document.getElementById('variantForm');
+    var currentImage = document.getElementById('currentVariantImage');
+
+    variantModal.addEventListener('show.bs.modal', function (event) {
+        // Get the button that triggered the modal
         var button = event.relatedTarget;
 
-        // Lấy dữ liệu từ các thuộc tính data-*
+        // Extract variant data from data-* attributes
         var variantId = button.getAttribute('data-variant-id');
-        var variantName = button.getAttribute('data-variant-name');
-        var variantImage = button.getAttribute('data-variant-image');
-        var variantDescription = button.getAttribute('data-variant-description');
-        var variantCategory = button.getAttribute('data-variant-category');
-        var variantStatus = button.getAttribute('data-variant-status');
-        var variantView = button.getAttribute('data-variant-view');
+        var variantQuantity = button.getAttribute('data-variant-quantity');
         var variantPrice = button.getAttribute('data-variant-price');
         var variantSalePrice = button.getAttribute('data-variant-sale-price');
-        var variantQuantity = button.getAttribute('data-variant-quantity');
         var variantColor = button.getAttribute('data-variant-color');
         var variantSize = button.getAttribute('data-variant-size');
+        var variantImage = button.getAttribute('data-variant-image');
+        var variantView = button.getAttribute('data-variant-view'); // Assuming 'view' is relevant for variants
 
-        // Cập nhật các trường trong modal
-        var modal = detailModal.querySelector('.modal-content');
-        modal.querySelector('#modalVariantName').value = variantName;
-        modal.querySelector('#modalVariantDescription').value = variantDescription;
-        modal.querySelector('#modalVariantCategory').value = variantCategory;
-        modal.querySelector('#modalVariantStatus').value = variantStatus;
-        modal.querySelector('#modalVariantView').value = variantView;
-        modal.querySelector('#modalVariantQuantity').value = variantQuantity;
-        modal.querySelector('#modalVariantPrice').value = variantPrice;
-        modal.querySelector('#modalVariantSalePrice').value = variantSalePrice;
-        modal.querySelector('#modalVariantColor').value = variantColor;
-        modal.querySelector('#modalVariantSize').value = variantSize;
+        // Populate the modal fields with variant data
+        variantForm.action = updateVariantUrl + variantId;
 
-        // Cập nhật ảnh biến thể
-        var currentImage = modal.querySelector('#currentVariantImage');
+        // Populate quantity, price, sale_price, color, and size
+        document.getElementById('modalVariantQuantity').value = variantQuantity;
+        document.getElementById('modalVariantPrice').value = variantPrice;
+        document.getElementById('modalVariantSalePrice').value = variantSalePrice;
+        document.getElementById('modalVariantColor').value = variantColor;
+        document.getElementById('modalVariantSize').value = variantSize;
+
+        // Handle variant image
         if (variantImage) {
             currentImage.src = variantImage;
             currentImage.style.display = 'block';
@@ -314,9 +274,12 @@ document.addEventListener('DOMContentLoaded', function () {
             currentImage.style.display = 'none';
         }
 
-        // Cập nhật action của form để gửi đến phương thức updateVariant
-        var form = modal.querySelector('#variantDetailForm');
-        form.action = updateVariantUrl + variantId;
+        // Handle view count if relevant
+        if (variantView !== null) {
+            document.getElementById('modalVariantView').value = variantView;
+        } else {
+            document.getElementById('modalVariantView').value = '';
+        }
     });
 });
 </script>
