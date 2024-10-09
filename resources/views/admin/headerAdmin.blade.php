@@ -72,13 +72,12 @@
                     <a class="nav-link" href="#">
                         <div class="dropdown">
                             <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton">
-                                Danh mục sản phẩm
+                                Giảm giá
                             </button>
                             <div class="dropdown-menu">
-                                <a class="dropdown-item" href="#">Danh sách</a>
-                                <a class="dropdown-item" href="#">Tạo danh mục</a>
-                                <a class="dropdown-item" href="#">Sửa tên danh mục</a>
-                                <a class="dropdown-item" href="#">Thùng rác</a>
+                                <a class="dropdown-item" href="{{route('list.voucher')}}">Phiếu giảm giá</a>
+                                <a class="dropdown-item" href="#">Đợt giảm giá</a>
+
                             </div>
                         </div>
                     </a>

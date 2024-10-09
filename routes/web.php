@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\admin\ProductController;
+use App\Http\Controllers\Admin\VoucherController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -31,7 +32,9 @@ Route::prefix('category/')->group(function(){
      Route::post('add-category',[CategoryController::class,'addCategory'])->name('add.category');
      Route::put('update-category/{id}', [CategoryController::class, 'updateCategory'])->name('update.category');
 });
-
-}
-)
-;
+Route::prefix('voucher')->group(function(){
+    Route::get('/',[VoucherController::class,'index'])->name('list.voucher');
+    Route::get('add-voucher',[VoucherController::class,'create'])->name('add.voucher');
+    Route::post('add-voucher',[VoucherController::class,'store'])->name('store.voucher');
+});
+});
