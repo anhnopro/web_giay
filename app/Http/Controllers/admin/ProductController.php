@@ -196,7 +196,7 @@ public function updateProduct(Request $request, $id)
         }
     }
 
-    return redirect()->route('admin.product.edit', $product->id_product)
+    return redirect()->route('edit.product', $product->id_product)
                      ->with('success', 'Cập nhật sản phẩm thành công!');
 }
 

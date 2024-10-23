@@ -68,7 +68,7 @@
         <!-- Product Variants Management -->
         <div class="mb-4">
             <h4>Quản Lý Biến Thể Sản Phẩm</h4>
-           
+
             <table class="table table-bordered mt-2" id="product-variants-table">
                 <thead>
                     <tr>
@@ -144,6 +144,7 @@
 
         <!-- Main Submit Button -->
         <div class="text-center">
+            <a href="{{route('list.product')}}" class="btn btn-success">Quay lại</a>
             <button type="submit" class="btn btn-primary">Cập nhật tất cả</button>
         </div>
     </form>

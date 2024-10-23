@@ -3,7 +3,11 @@
     <h2>Danh Sách Voucher</h2>
     <a href="{{route('add.voucher')}}" class="btn btn-primary mb-3">Thêm Voucher Mới</a>
     <div class="alert alert-success" style="display:none;">Thành công!</div>
-
+    @if (session('message'))
+      <div class="alert alert-danger">
+        Bạn đã xóa thành công
+      </div>
+    @endif
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -56,13 +60,14 @@
                     @endif
                 </td>
                 <td>
-                    <a href="/admin/vouchers/edit/{{$voucher->id_voucher}}" class="btn btn-warning btn-sm">Sửa</a>
-                    <form action="/admin/vouchers/{{$voucher->id_voucher}}" method="POST" style="display:inline-block;">
+                    <a href="{{ route('edit.voucher', $voucher->id_voucher) }}" class="btn btn-warning btn-sm">Sửa</a>
+                    <form action="{{ route('destroy.voucher', $voucher->id_voucher) }}" method="POST" style="display:inline-block;">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc muốn xóa voucher này?')">Xóa</button>
                     </form>
                 </td>
+
             </tr>
             @endforeach
         </tbody>

@@ -69,6 +69,18 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="{{route('list.counter.sales')}}">
+                        <div class="dropdown">
+                            <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton" >
+                              Bán hàng tại quầy
+                            </button>
+
+
+
+                        </div>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="#">
                         <div class="dropdown">
                             <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton">
@@ -82,20 +94,7 @@
                         </div>
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <div class="dropdown">
-                            <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton">
-                                Thuộc tính sản phẩm
-                            </button>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" href="#">Danh sách</a>
-                                <a class="dropdown-item" href="#">Tạo thuộc tính</a>
-                                <a class="dropdown-item" href="#">Thùng rác</a>
-                            </div>
-                        </div>
-                    </a>
-                </li>
+
                 <li class="nav-item">
                     <a class="nav-link" href="#">
                         <div class="dropdown">

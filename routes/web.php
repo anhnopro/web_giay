@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\admin\CounterSaleController;
 use App\Http\Controllers\admin\ProductController;
 use App\Http\Controllers\Admin\VoucherController;
 use Illuminate\Support\Facades\Route;
@@ -24,7 +25,7 @@ Route::prefix('admin/')->group(function(){
         Route::get('edit-product/{prd}', [ProductController::class, 'editProduct'])->name('edit.product');
         Route::put('edit-product/{prd}', [ProductController::class, 'updateProduct'])->name('update.product');
 
-        // Cập nhật biến thể sản phẩm
+
         Route::put('edit-product/variants/{variant}', [ProductController::class, 'updateVariant'])->name('update.product.variant');
 });
 Route::prefix('category/')->group(function(){
@@ -32,9 +33,19 @@ Route::prefix('category/')->group(function(){
      Route::post('add-category',[CategoryController::class,'addCategory'])->name('add.category');
      Route::put('update-category/{id}', [CategoryController::class, 'updateCategory'])->name('update.category');
 });
-Route::prefix('voucher')->group(function(){
-    Route::get('/',[VoucherController::class,'index'])->name('list.voucher');
-    Route::get('add-voucher',[VoucherController::class,'create'])->name('add.voucher');
-    Route::post('add-voucher',[VoucherController::class,'store'])->name('store.voucher');
+
+/// voucher
+Route::prefix('voucher')->group(function() {
+    Route::get('/', [VoucherController::class, 'index'])->name('list.voucher');
+    Route::get('add-voucher', [VoucherController::class, 'create'])->name('add.voucher');
+    Route::post('add-voucher', [VoucherController::class, 'store'])->name('store.voucher');
+    Route::get('edit-voucher/{id}', [VoucherController::class, 'edit'])->name('edit.voucher'); // Edit route
+    Route::post('update-voucher/{id}', [VoucherController::class, 'update'])->name('update.voucher'); // Update route
+    Route::delete('delete-voucher/{id}', [VoucherController::class, 'destroy'])->name('destroy.voucher');
+});
+
+//counter_sales
+Route::prefix('counter-sales')->group(function(){
+    Route::get('/',[CounterSaleController::class,'index'])->name('list.counter.sales');
 });
 });
