@@ -212,11 +212,49 @@
                 <h5>Tổng tiền: <span id="totalPrice">0 VND</span></h5>
             </div>
 
-        <div class="text-center mt-3">
-            <button type="submit" class="btn btn-success">Hoàn tất Đơn hàng</button>
-        </div>
+            <div class="text-center mt-3">
+                <button type="button" class="btn btn-success" onclick="generateInvoicePDF()">Hoàn tất Đơn hàng</button>
+            </div>
+
     </form>
 </div>
+<!-- Invoice Modal -->
+<div class="modal fade" id="invoiceModal" tabindex="-1" aria-labelledby="invoiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="invoiceModalLabel">HÓA ĐƠN BÁN HÀNG</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="invoice">
+                    <h2>F-Shoes</h2>
+                    <p>Địa chỉ: FPT POLYTECHNIC Cơ Sở Xã Tân An, P. Kiều Mai, Phúc Diễn, Từ Liêm, Hà Nội</p>
+                    <h3>HÓA ĐƠN BÁN HÀNG</h3>
+                    <table class="table table-bordered" width="100%">
+                        <thead>
+                            <tr>
+                                <th>STT</th>
+                                <th>Tên sản phẩm</th>
+                                <th>Số lượng</th>
+                                <th>Đơn giá</th>
+                                <th>Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoiceItems"></tbody>
+                    </table>
+                    <p><strong>Tổng cộng:</strong> <span id="invoiceTotal">0</span> VND</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="generateInvoicePDF()">In Hóa Đơn</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 @include('admin.footerAdmin')
 
@@ -419,5 +457,56 @@
         return number.toLocaleString('vi-VN', { minimumFractionDigits: 0 });
     }
 });
+function generateInvoiceContent() {
+    const orderItems = document.querySelectorAll('#orderItemsTable tbody tr');
+    const invoiceItems = document.getElementById('invoiceItems');
+    invoiceItems.innerHTML = ''; // Xóa nội dung cũ
+
+    let total = 0;
+
+    orderItems.forEach((item, index) => {
+        const productName = item.querySelectorAll('td')[1].innerText;
+        const color = item.querySelectorAll('td')[2].innerText;
+        const size = item.querySelectorAll('td')[3].innerText;
+        const price = parseFloat(item.querySelectorAll('td')[4].innerText.replace(/[^0-9.-]+/g, ""));
+        const quantity = 1; // Giả định số lượng là 1
+        const subtotal = price * quantity;
+        total += subtotal;
+
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${productName} (${color}, ${size})</td>
+            <td>${quantity}</td>
+            <td>${price.toLocaleString('vi-VN')} VND</td>
+            <td>${subtotal.toLocaleString('vi-VN')} VND</td>
+        `;
+        invoiceItems.appendChild(newRow);
+    });
+
+    // Cập nhật tổng tiền
+    document.getElementById('invoiceTotal').innerText = total.toLocaleString('vi-VN');
+
+    // Hiển thị modal hóa đơn
+    const invoiceModal = new bootstrap.Modal(document.getElementById('invoiceModal'));
+    invoiceModal.show();
+}
+
+function generateInvoicePDF() {
+    const invoice = document.getElementById('invoice');
+    html2canvas(invoice, { scale: 2 }).then((canvas) => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.width; // Sử dụng `width` thay vì `getWidth`
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save('Hoa_Don_Ban_Hang.pdf');
+    });
+}
+
+// Gọi hàm generateInvoiceContent khi nhấn "Hoàn tất Đơn hàng"
+document.querySelector('button[onclick="generateInvoicePDF()"]').setAttribute('onclick', 'generateInvoiceContent()');
+
 
 </script>
