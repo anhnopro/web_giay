@@ -219,20 +219,36 @@
     </form>
 </div>
 <!-- Invoice Modal -->
+<!-- Invoice Modal -->
 <div class="modal fade" id="invoiceModal" tabindex="-1" aria-labelledby="invoiceModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="invoiceModalLabel">HÓA ĐƠN BÁN HÀNG</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div id="invoice">
-                    <h2>F-Shoes</h2>
-                    <p>Địa chỉ: FPT POLYTECHNIC Cơ Sở Xã Tân An, P. Kiều Mai, Phúc Diễn, Từ Liêm, Hà Nội</p>
-                    <h3>HÓA ĐƠN BÁN HÀNG</h3>
-                    <table class="table table-bordered" width="100%">
-                        <thead>
+                <div id="invoice" class="p-4">
+                    <h2 class="text-center">F-Shoes</h2>
+                    <p class="text-center">Địa chỉ: FPT POLYTECHNIC Cơ Sở Xã Tân An, P. Kiều Mai, Phúc Diễn, Từ Liêm, Hà Nội</p>
+                    <hr>
+                    <h3 class="text-center mb-4">HÓA ĐƠN BÁN HÀNG</h3>
+
+                    <!-- Invoice Details -->
+                    <div class="row mb-3">
+                        <div class="col-sm-6">
+                            <p><strong>Khách hàng:</strong> Khách lẻ</p>
+                            <p><strong>Ngày tạo:</strong> <span id="invoiceDate">21-12-2023 13:48:14</span></p>
+                        </div>
+                        <div class="col-sm-6 text-end">
+                            <p><strong>Mã Hóa Đơn:</strong> HD10</p>
+                            <p><strong>Nhân viên:</strong> NV6 - Nguyễn Văn Nhật</p>
+                        </div>
+                    </div>
+
+                    <!-- Product Table -->
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-primary">
                             <tr>
                                 <th>STT</th>
                                 <th>Tên sản phẩm</th>
@@ -241,9 +257,18 @@
                                 <th>Thành tiền</th>
                             </tr>
                         </thead>
-                        <tbody id="invoiceItems"></tbody>
+                        <tbody id="invoiceItems">
+                            <!-- Items will be added dynamically by JavaScript -->
+                        </tbody>
                     </table>
-                    <p><strong>Tổng cộng:</strong> <span id="invoiceTotal">0</span> VND</p>
+
+                    <!-- Summary Section -->
+                    <div class="text-end">
+                        <p><strong>Tổng tiền hàng:</strong> <span id="subTotal">2,377,500 VND</span></p>
+                        <p><strong>Giảm giá:</strong> <span id="discount">250,000 VND</span></p>
+                        <hr>
+                        <h4><strong>Tổng cộng thanh toán:</strong> <span id="invoiceTotal">2,127,500 VND</span></h4>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -253,6 +278,7 @@
         </div>
     </div>
 </div>
+
 
 
 
@@ -282,7 +308,7 @@
 
 <!-- JavaScript Section -->
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+  document.addEventListener("DOMContentLoaded", function () {
     let orderCount = 0;
     const createOrderBtn = document.getElementById('createOrderBtn');
     const addProductBtn = document.getElementById('addProductBtn');
@@ -292,9 +318,15 @@
     let selectedProduct = null;
     let selectedVariant = null;
     let totalPrice = 0;
-    const vouchers = @json($vouchers); // Sử dụng dữ liệu từ server
+    let discount = 0; // Lưu giá trị giảm giá từ voucher
+    const vouchers = @json($vouchers); // Dữ liệu voucher từ server
 
-    // Create a new order tab
+    // Hàm định dạng tiền tệ
+    function formatCurrency(number) {
+        return number.toLocaleString('vi-VN', { minimumFractionDigits: 0 }) + ' VND';
+    }
+
+    // Tạo tab đơn hàng mới
     createOrderBtn.addEventListener('click', function () {
         orderCount++;
         const newOrderItem = document.createElement('li');
@@ -307,12 +339,12 @@
         orderTabs.appendChild(newOrderItem);
     });
 
-    // Show modal with products
+    // Hiển thị modal sản phẩm
     addProductBtn.addEventListener('click', function () {
         productModal.show();
     });
 
-    // Handle product selection
+    // Xử lý chọn sản phẩm
     document.querySelectorAll('.select-product').forEach(function (button) {
         button.addEventListener('click', function () {
             const productId = this.getAttribute('data-id');
@@ -327,27 +359,24 @@
                 variants: variants
             };
 
-            // If product has multiple variants, open variant selection modal
             if (selectedProduct.variants.length > 1) {
                 populateVariantModal(selectedProduct.variants);
                 variantModal.show();
             } else if (selectedProduct.variants.length === 1) {
-                // Automatically select the single variant
                 selectedVariant = selectedProduct.variants[0];
                 addProductToOrder(selectedProduct, selectedVariant);
                 productModal.hide();
             } else {
-                // No variants available
                 addProductToOrder(selectedProduct, null);
                 productModal.hide();
             }
         });
     });
 
-    // Function to populate variant modal
+    // Hàm tạo nội dung modal biến thể
     function populateVariantModal(variants) {
         const variantDetails = document.getElementById('variantDetails');
-        variantDetails.innerHTML = ''; // Clear previous content
+        variantDetails.innerHTML = ''; // Xóa nội dung cũ
 
         variants.forEach(function (variant, index) {
             const variantCard = document.createElement('div');
@@ -362,7 +391,7 @@
                             <h5 class="card-title">${selectedProduct.name}</h5>
                             <p class="card-text">Màu sắc: ${variant.color_name}</p>
                             <p class="card-text">Kích cỡ: ${variant.size_value}</p>
-                            <p class="card-text">Giá: ${formatCurrency(variant.sale_price || variant.price)} VND</p>
+                            <p class="card-text">Giá: ${formatCurrency(variant.sale_price || variant.price)}</p>
                             <p class="card-text">Số lượng: ${variant.quantity}</p>
                             <button class="btn btn-primary select-variant-btn" data-variant-id="${variant.id_variant}">Chọn biến thể này</button>
                         </div>
@@ -372,7 +401,7 @@
             variantDetails.appendChild(variantCard);
         });
 
-        // Add event listeners to variant selection buttons
+        // Thêm sự kiện chọn biến thể
         document.querySelectorAll('.select-variant-btn').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 const variantId = this.getAttribute('data-variant-id');
@@ -384,15 +413,16 @@
         });
     }
 
-    // Function to add product and variant to order
+    // Hàm thêm sản phẩm và biến thể vào đơn hàng
     function addProductToOrder(product, variant) {
-        // Update total price
-        const price = variant ? (variant.sale_price || variant.price) : 0; // Assuming product has no standalone price
-        totalPrice += parseFloat(price);
-        document.getElementById('totalPrice').innerText = formatCurrency(totalPrice) + ' VND';
+        const price = variant ? parseFloat(variant.sale_price || variant.price) : 0;
+        totalPrice += price;
+
+        // Cập nhật tổng tiền
+        document.getElementById('totalPrice').innerText = formatCurrency(totalPrice);
         document.getElementById('hiddenTotalPrice').value = totalPrice;
 
-        // Append to order items table
+        // Thêm sản phẩm vào bảng chi tiết đơn hàng
         const orderItemsTable = document.getElementById('orderItemsTable').querySelector('tbody');
         const newRow = document.createElement('tr');
         newRow.innerHTML = `
@@ -400,10 +430,9 @@
             <td>${product.name}</td>
             <td>${variant ? variant.color_name : 'N/A'}</td>
             <td>${variant ? variant.size_value : 'N/A'}</td>
-            <td>${formatCurrency(price)} VND</td>
+            <td>${formatCurrency(price)}</td>
             <td>
                 <button class="btn btn-danger btn-sm remove-item-btn">Xóa</button>
-                <!-- Hidden inputs to capture order data -->
                 <input type="hidden" name="order_items[][id_product]" value="${product.id}">
                 <input type="hidden" name="order_items[][id_variant]" value="${variant ? variant.id_variant : ''}">
                 <input type="hidden" name="order_items[][price]" value="${price}">
@@ -411,16 +440,16 @@
         `;
         orderItemsTable.appendChild(newRow);
 
-        // Add event listener to remove button
+        // Xử lý sự kiện xóa sản phẩm
         newRow.querySelector('.remove-item-btn').addEventListener('click', function () {
-            totalPrice -= parseFloat(price);
-            document.getElementById('totalPrice').innerText = formatCurrency(totalPrice) + ' VND';
+            totalPrice -= price;
+            document.getElementById('totalPrice').innerText = formatCurrency(totalPrice);
             document.getElementById('hiddenTotalPrice').value = totalPrice;
             newRow.remove();
         });
     }
 
-    // Function to apply voucher
+    // Hàm áp dụng voucher
     document.getElementById('applyVoucherBtn').addEventListener('click', function () {
         const voucherCode = document.getElementById('voucherCode').value.trim();
         if (voucherCode === '') {
@@ -428,85 +457,95 @@
             return;
         }
 
-        // Find the voucher based on the code
+        // Tìm voucher theo mã nhập vào
         const voucher = vouchers.find(v => v.code === voucherCode && v.status === 'active');
         if (!voucher) {
             alert('Voucher không hợp lệ hoặc đã hết hạn.');
             return;
         }
 
-        // Calculate discount
-        let discount = 0;
-        if (voucher.discount_type === 'percentage') {
-            discount = totalPrice * (voucher.discount_amount / 100);
-        } else if (voucher.discount_type === 'fixed') {
-            discount = voucher.discount_amount;
-        }
+        // Tính toán giảm giá
+        discount = voucher.discount_type === 'percentage'
+                   ? totalPrice * (voucher.discount_amount / 100)
+                   : voucher.discount_amount;
+
+        discount = parseFloat(discount) || 0;
 
         if (totalPrice >= discount) {
-            totalPrice -= discount;
-            document.getElementById('totalPrice').innerText = formatCurrency(totalPrice) + ' VND';
-            document.getElementById('hiddenTotalPrice').value = totalPrice;
+            document.getElementById('discount').innerText = formatCurrency(discount);
+            const discountedTotal = totalPrice - discount;
+            document.getElementById('totalPrice').innerText = formatCurrency(discountedTotal);
+            document.getElementById('hiddenTotalPrice').value = discountedTotal;
             alert('Voucher áp dụng thành công!');
         } else {
             alert('Giá trị đơn hàng không đủ để áp dụng voucher.');
         }
     });
 
-    function formatCurrency(number) {
-        return number.toLocaleString('vi-VN', { minimumFractionDigits: 0 });
+    // Hàm tạo nội dung hóa đơn
+    function generateInvoiceContent() {
+        const orderItems = document.querySelectorAll('#orderItemsTable tbody tr');
+        const invoiceItems = document.getElementById('invoiceItems');
+        invoiceItems.innerHTML = '';
+
+        let subTotal = 0;
+
+        orderItems.forEach((item, index) => {
+            const productName = item.querySelectorAll('td')[1].innerText;
+            const color = item.querySelectorAll('td')[2].innerText;
+            const size = item.querySelectorAll('td')[3].innerText;
+            const priceText = item.querySelectorAll('td')[4].innerText.replace(/[^0-9]/g, "");
+            const price = parseFloat(priceText) || 0;
+            const quantity = 1;
+            const subtotal = price * quantity;
+            subTotal += subtotal;
+
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${productName} (${color}, ${size})</td>
+                <td>${quantity}</td>
+                <td>${price.toLocaleString('vi-VN')} VND</td>
+                <td>${subtotal.toLocaleString('vi-VN')} VND</td>
+            `;
+            invoiceItems.appendChild(newRow);
+        });
+
+        const totalPayment = subTotal - discount;
+
+        document.getElementById('subTotal').innerText = subTotal.toLocaleString('vi-VN') + ' VND';
+        document.getElementById('discount').innerText = discount.toLocaleString('vi-VN') + ' VND';
+        document.getElementById('invoiceTotal').innerText = totalPayment.toLocaleString('vi-VN') + ' VND';
+
+        const invoiceModal = new bootstrap.Modal(document.getElementById('invoiceModal'));
+        invoiceModal.show();
     }
-});
-function generateInvoiceContent() {
-    const orderItems = document.querySelectorAll('#orderItemsTable tbody tr');
-    const invoiceItems = document.getElementById('invoiceItems');
-    invoiceItems.innerHTML = ''; // Xóa nội dung cũ
 
-    let total = 0;
+    // Gọi hàm generateInvoiceContent khi nhấn "Hoàn tất Đơn hàng"
+  // Hàm để in PDF từ hóa đơn
 
-    orderItems.forEach((item, index) => {
-        const productName = item.querySelectorAll('td')[1].innerText;
-        const color = item.querySelectorAll('td')[2].innerText;
-        const size = item.querySelectorAll('td')[3].innerText;
-        const price = parseFloat(item.querySelectorAll('td')[4].innerText.replace(/[^0-9.-]+/g, ""));
-        const quantity = 1; // Giả định số lượng là 1
-        const subtotal = price * quantity;
-        total += subtotal;
+  function generateInvoicePDF() {
+            const invoice = document.getElementById('invoice');
+            html2canvas(invoice, { scale: 2 }).then((canvas) => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.width;
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-        const newRow = document.createElement('tr');
-        newRow.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${productName} (${color}, ${size})</td>
-            <td>${quantity}</td>
-            <td>${price.toLocaleString('vi-VN')} VND</td>
-            <td>${subtotal.toLocaleString('vi-VN')} VND</td>
-        `;
-        invoiceItems.appendChild(newRow);
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                pdf.save('Hoa_Don_Ban_Hang.pdf');
+            });
+        }
+
+        // Gọi hàm generateInvoiceContent khi nhấn "Hoàn tất Đơn hàng"
+        document.querySelector('button.btn-success').addEventListener('click', generateInvoiceContent);
+
+        // Gọi hàm generateInvoicePDF khi nhấn nút "In Hóa Đơn"
+        document.querySelector('#invoiceModal .btn-primary').addEventListener('click', generateInvoicePDF);
     });
 
-    // Cập nhật tổng tiền
-    document.getElementById('invoiceTotal').innerText = total.toLocaleString('vi-VN');
 
-    // Hiển thị modal hóa đơn
-    const invoiceModal = new bootstrap.Modal(document.getElementById('invoiceModal'));
-    invoiceModal.show();
-}
 
-function generateInvoicePDF() {
-    const invoice = document.getElementById('invoice');
-    html2canvas(invoice, { scale: 2 }).then((canvas) => {
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        const pdfWidth = pdf.internal.pageSize.width; // Sử dụng `width` thay vì `getWidth`
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save('Hoa_Don_Ban_Hang.pdf');
-    });
-}
-
-// Gọi hàm generateInvoiceContent khi nhấn "Hoàn tất Đơn hàng"
-document.querySelector('button[onclick="generateInvoicePDF()"]').setAttribute('onclick', 'generateInvoiceContent()');
 
 
 </script>

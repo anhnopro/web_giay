@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\admin\CounterSaleController;
+use App\Http\Controllers\admin\OrderController;
 use App\Http\Controllers\admin\ProductController;
 use App\Http\Controllers\Admin\VoucherController;
 use Illuminate\Support\Facades\Route;
@@ -49,3 +50,4 @@ Route::prefix('counter-sales')->group(function(){
     Route::get('/',[CounterSaleController::class,'index'])->name('list.counter.sales');
 });
 });
+Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
