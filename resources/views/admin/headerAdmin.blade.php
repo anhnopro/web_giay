@@ -106,7 +106,7 @@
                                 Quản lí đơn hàng
                             </button>
                             <div class="dropdown-menu">
-                                <a class="dropdown-item" href="#">Danh sách đơn hàng</a>
+                                <a class="dropdown-item" href="{{route('orders.index')}}">Danh sách đơn hàng</a>
                             </div>
                         </div>
                     </a>

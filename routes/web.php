@@ -5,6 +5,7 @@ use App\Http\Controllers\admin\CounterSaleController;
 use App\Http\Controllers\admin\OrderController;
 use App\Http\Controllers\admin\ProductController;
 use App\Http\Controllers\Admin\VoucherController;
+use App\Http\Controllers\client\HomeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -48,6 +49,16 @@ Route::prefix('voucher')->group(function() {
 //counter_sales
 Route::prefix('counter-sales')->group(function(){
     Route::get('/',[CounterSaleController::class,'index'])->name('list.counter.sales');
+    Route::post('counter-sale/store-order', [CounterSaleController::class, 'storeOrder'])->name('admin.counterSale.storeOrder');
 });
-});
+
 Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+Route::get('/orders/{id}', [OrderController::class, 'show'])->name('orders.show');
+});
+
+
+Route::prefix('client/')->group(function(){
+           Route::get('home',[HomeController::class,'index'])->name('home');
+           Route::get('product/detail/{id}', [HomeController::class, 'showProductDetail'])->name('product.detail');
+
+});

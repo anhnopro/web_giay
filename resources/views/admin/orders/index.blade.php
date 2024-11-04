@@ -47,8 +47,9 @@
                     </span>
                 </td>
                 <td>
-                    <a href="#" class="text-decoration-none"><i class="bi bi-eye"></i></a>
+                    <a href="{{ route('orders.show', $order->id_order) }}" class="btn btn-primary">Chi tiết </a>
                 </td>
+
             </tr>
             @endforeach
         </tbody>
