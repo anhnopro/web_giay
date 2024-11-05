@@ -13,7 +13,9 @@ class HomeController extends Controller
         $data=[
             'products'=>$products->getProductHome(),
         ];
-        return view('client.home',$data);
+
+        
+        return view('client.product.home',$data);
     }
     public function showProductDetail($productId)
     {

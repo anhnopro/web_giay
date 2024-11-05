@@ -6,6 +6,7 @@ use App\Http\Controllers\admin\OrderController;
 use App\Http\Controllers\admin\ProductController;
 use App\Http\Controllers\Admin\VoucherController;
 use App\Http\Controllers\client\HomeController;
+use App\Http\Controllers\client\CartController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -62,3 +63,7 @@ Route::prefix('client/')->group(function(){
            Route::get('product/detail/{id}', [HomeController::class, 'showProductDetail'])->name('product.detail');
 
 });
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/cart/add', [CartController::class, 'addToCart'])->name('cart.add');
+Route::post('/cart/update-quantity', [CartController::class, 'updateQuantity'])->name('cart.updateQuantity');
+Route::get('/cart/remove/{index}', [CartController::class, 'removeItem'])->name('cart.remove');
