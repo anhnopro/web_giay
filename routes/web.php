@@ -9,6 +9,7 @@ use App\Http\Controllers\client\HomeController;
 use App\Http\Controllers\client\CartController;
 use Illuminate\Support\Facades\Route;
 
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -66,4 +67,9 @@ Route::prefix('client/')->group(function(){
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart/add', [CartController::class, 'addToCart'])->name('cart.add');
 Route::post('/cart/update-quantity', [CartController::class, 'updateQuantity'])->name('cart.updateQuantity');
-Route::get('/cart/remove/{index}', [CartController::class, 'removeItem'])->name('cart.remove');
+Route::get('/cart/delete/{id_product}/{color}/{size}', [CartController::class, 'deleteProductCart'])->name('cart.delete');
+
+Route::get('/checkout', [CartController::class, 'checkout'])->name('cart.checkout');
+
+Route::post('/checkout', [CartController::class, 'processCheckout'])->name('cart.processCheckout');
+Route::get('/orders/{id}', [CartController::class, 'show'])->name('client.order.show');

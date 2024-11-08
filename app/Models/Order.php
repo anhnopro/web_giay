@@ -12,6 +12,17 @@ class Order extends Model
 
     protected $primaryKey = 'id_order';
     protected $table = 'orders';
+    protected $fillable = [
+        'name',
+        'email',
+        'phone_number',
+        'address',
+        'date',
+        'invoice_type',
+        'total_payment'
+
+    ];
+
     public function findOrder($orderId) {
         $result = DB::table('orders as o')
             ->join('order_details as od', 'od.id_order', '=', 'o.id_order')
@@ -54,4 +65,5 @@ class Order extends Model
     {
         return $this->hasMany(OrderDetail::class, 'id_order', 'id_order');
     }
+    public $timestamps = true;
 }

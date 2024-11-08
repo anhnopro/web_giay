@@ -12,6 +12,9 @@ class OrderDetail extends Model
 
     protected $primaryKey = 'id_orderDetail';
     protected $table = 'order_details';
+    protected $fillable = [
+        'id_order', 'name_product', 'total', 'qty', 'id_product', 'total_payment','date',
+    ];
 
     public function order()
     {
@@ -22,4 +25,5 @@ class OrderDetail extends Model
     {
         return $this->belongsTo(ProductModel::class, 'id_product', 'id_product');
     }
+
 }

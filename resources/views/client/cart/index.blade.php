@@ -6,7 +6,7 @@
 
     @if(count($cart) > 0)
         @foreach($cart as $index => $item)
-            <div class="container mt-4 cart-item">
+            <div class="container mt-4 cart-item" data-index="{{ $index }}">
                 <div class="row d-flex justify-content-between align-items-center">
                     <!-- Hình ảnh và thông tin sản phẩm -->
                     <div class="col-md-6 d-flex align-items-center">
@@ -30,7 +30,8 @@
                     <!-- Tổng tiền cho sản phẩm và nút xóa -->
                     <div class="col-md-2 text-end">
                         <p class="total">{{ number_format($item['qty'] * $item['price'], 0, ',', '.') }} VNĐ</p>
-                        <a href="{{ route('cart.remove', $index) }}" class="text-danger fs-4">X</a>
+                        <a href="{{ route('cart.delete', ['id_product' => $item['id_product'], 'color' => urlencode($item['color']), 'size' => $item['size']]) }}" class="text-danger fs-4 delete-item">X</a>
+
                     </div>
                 </div>
                 <hr>
@@ -47,10 +48,11 @@
         </div>
         <div class="col-md-4 text-end">
             <p>Tổng tiền:</p>
-            <h3 class="total_payment">Tổng tiền:{{ number_format($totalPayment, 0, ',', '.') }} VNĐ</h3>
+            <h3 class="total_payment">Tổng tiền: {{ number_format($totalPayment, 0, ',', '.') }} VNĐ</h3>
             <div class="d-flex justify-content-end mt-3">
                 <a href="" class="btn btn-secondary me-2">Tiếp tục mua hàng</a>
-                <a href="" class="btn btn-primary">Thanh toán</a>
+                <a href="{{ route('cart.checkout') }}" class="btn btn-primary">Tiếp tục đặt hàng</a>
+
             </div>
         </div>
     </div>
@@ -79,9 +81,28 @@
             },
             success: function(response) {
                 $(`#quantity-${index}`).closest('.cart-item').find(".total").html(response.total + ' VNĐ');
-                $(".total_payment").text(  response.total_payment );
+                $(".total_payment").text('Tổng tiền: ' + response.total_payment);
             }
         });
     }
+
+    // Sử dụng AJAX để xóa sản phẩm và cập nhật lại tổng tiền
+    $(document).on('click', '.delete-item', function (e) {
+    e.preventDefault();
+
+    let url = $(this).attr('href');  // Lấy URL từ liên kết xóa
+
+    $.ajax({
+        url: url,
+        method: 'GET',
+        success: function(response) {
+            if (response.status === 'success') {
+                $(e.target).closest('.cart-item').remove();
+                $(".total_payment").text('Tổng tiền: ' + response.total_payment);
+            }
+        }
+    });
+});
+
 </script>
 @endsection
